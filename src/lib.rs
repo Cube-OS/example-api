@@ -48,9 +48,8 @@ pub type ExampleResult<T> = Result<T,ExampleError>;
 // Output (e.g to show the state of a device (e.g. ON,OFF,IDLE,etc.))
 #[derive(Serialize,Deserialize,GraphQLEnum)]
 pub enum ExampleEnum {
-    Number,
-    String,
-    Boolean,
+    Zero,
+    One,
     All,
 }
 
@@ -60,14 +59,16 @@ pub enum ExampleEnum {
 #[derive(Serialize,Deserialize)]
 pub struct ExampleInput {
     pub in_no: u16,
-    pub in_str: String,
+    pub in_no1: u32,
+    pub in_no2: u16,
+    // pub in_str: String,
     pub in_bool: bool,
 }
-#[derive(Serialize,Deserialize)]
+#[derive(Serialize,Deserialize,Debug)]
 pub struct ExampleOutput {
-    pub out_no: Option<u16>,
-    pub out_str: Option<String>,
-    pub out_bool: Option<bool>,
+    pub out_no: Vec<u16>,
+    // pub out_str: Option<String>,
+    pub out_bool: Vec<bool>,
 }
 
 // Example of Struct containing the functions to connect to the payload
@@ -77,17 +78,21 @@ pub struct ExampleStruct {
     // connection: Connection,
     // Buffer needed for UART connections
     // buffer: RefCell<Vec<u8>>
-    ex_no: u16,
-    ex_str: String,
-    ex_bool: bool,
+    ex_no0: u16,
+    ex_no1: u16,
+    // ex_str: String,
+    ex_bool0: bool,
+    ex_bool1: bool,
 }
 impl ExampleStruct {
     // basic function to initialise an instance of the ExampleStruct
     pub fn new() -> Self {
         Self{
-            ex_no: 0u16,
-            ex_str: "".to_string(),
-            ex_bool: false,
+            ex_no0: 0u16,
+            ex_no1: 0u16,
+            // ex_str: "".to_string(),
+            ex_bool0: false,
+            ex_bool1: false,
         }
     }
 
@@ -95,20 +100,15 @@ impl ExampleStruct {
     // Enum and Structs as In-/Output
     pub fn get(&self, g: ExampleEnum) -> ExampleResult<ExampleOutput> {
         match g {
-            ExampleEnum::Number => Ok(ExampleOutput{
-                out_no: Some(self.ex_no),
-                out_str: None,
-                out_bool: None,
+            ExampleEnum::Zero => Ok(ExampleOutput{
+                out_no: vec![self.ex_no0],
+                // out_str: None,
+                out_bool: vec![self.ex_bool0],
             }),
-            ExampleEnum::String => Ok(ExampleOutput{
-                out_no: None,
-                out_str: Some(String::from(&self.ex_str)),
-                out_bool: None,
-            }),
-            ExampleEnum::Boolean => Ok(ExampleOutput{
-                out_no: None,
-                out_str: None,
-                out_bool: Some(self.ex_bool),
+            ExampleEnum::One => Ok(ExampleOutput{
+                out_no: vec![self.ex_no1],
+                // out_str: None,
+                out_bool: vec![self.ex_bool1],
             }),
             ExampleEnum::All => self.get_all()
         }
@@ -116,18 +116,28 @@ impl ExampleStruct {
 
     fn get_all(&self) -> ExampleResult<ExampleOutput> {
         Ok(ExampleOutput{
-            out_no: Some(self.ex_no),
-            out_str: Some(String::from(&self.ex_str)),
-            out_bool: Some(self.ex_bool),
+            out_no: vec![self.ex_no0,self.ex_no1],
+            // out_str: None,
+            out_bool: vec![self.ex_bool0,self.ex_bool1],
         })
     }
 
-    pub fn set(&mut self, s: ExampleInput) -> ExampleResult<()> {
-        self.ex_no = s.in_no;
-        self.ex_str = s.in_str;
-        self.ex_bool = s.in_bool;
-
-        Ok(())
+    pub fn set(&mut self, s: ExampleInput, e: ExampleEnum) -> ExampleResult<()> {
+        match e {
+            ExampleEnum::Zero => {
+                self.ex_no0 = s.in_no;
+                // self.ex_str = s.in_str;
+                self.ex_bool0 = s.in_bool;
+                Ok(())
+            },
+            ExampleEnum::One => {
+                self.ex_no1 = s.in_no;
+                // self.ex_str = s.in_str;
+                self.ex_bool1 = s.in_bool;
+                Ok(())
+            }
+            _ => Err(ExampleError::Err),
+        }   
     }
 
     // I2C Example Transfer (Write-Read)
