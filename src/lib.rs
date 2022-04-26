@@ -61,13 +61,13 @@ pub struct ExampleInput {
     pub in_no: u16,
     pub in_no1: u32,
     pub in_no2: u16,
-    // pub in_str: String,
+    pub in_str: String,
     pub in_bool: bool,
 }
 #[derive(Serialize,Deserialize,Debug)]
 pub struct ExampleOutput {
     pub out_no: Vec<u16>,
-    // pub out_str: Option<String>,
+    pub out_str: String,
     pub out_bool: Vec<bool>,
 }
 
@@ -80,7 +80,7 @@ pub struct ExampleStruct {
     // buffer: RefCell<Vec<u8>>
     ex_no0: u16,
     ex_no1: u16,
-    // ex_str: String,
+    ex_str: String,
     ex_bool0: bool,
     ex_bool1: bool,
 }
@@ -90,7 +90,7 @@ impl ExampleStruct {
         Self{
             ex_no0: 0u16,
             ex_no1: 0u16,
-            // ex_str: "".to_string(),
+            ex_str: "".to_string(),
             ex_bool0: false,
             ex_bool1: false,
         }
@@ -102,12 +102,12 @@ impl ExampleStruct {
         match g {
             ExampleEnum::Zero => Ok(ExampleOutput{
                 out_no: vec![self.ex_no0],
-                // out_str: None,
+                out_str: self.ex_str.to_string(),
                 out_bool: vec![self.ex_bool0],
             }),
             ExampleEnum::One => Ok(ExampleOutput{
                 out_no: vec![self.ex_no1],
-                // out_str: None,
+                out_str: self.ex_str.to_string(),
                 out_bool: vec![self.ex_bool1],
             }),
             ExampleEnum::All => self.get_all()
@@ -117,7 +117,7 @@ impl ExampleStruct {
     fn get_all(&self) -> ExampleResult<ExampleOutput> {
         Ok(ExampleOutput{
             out_no: vec![self.ex_no0,self.ex_no1],
-            // out_str: None,
+            out_str: self.ex_str.to_string(),
             out_bool: vec![self.ex_bool0,self.ex_bool1],
         })
     }
@@ -126,13 +126,13 @@ impl ExampleStruct {
         match e {
             ExampleEnum::Zero => {
                 self.ex_no0 = s.in_no;
-                // self.ex_str = s.in_str;
+                self.ex_str = s.in_str;
                 self.ex_bool0 = s.in_bool;
                 Ok(())
             },
             ExampleEnum::One => {
                 self.ex_no1 = s.in_no;
-                // self.ex_str = s.in_str;
+                self.ex_str = s.in_str;
                 self.ex_bool1 = s.in_bool;
                 Ok(())
             }
