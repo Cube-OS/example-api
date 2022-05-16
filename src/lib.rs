@@ -9,17 +9,32 @@ use juniper::*;
 use std::convert::From;
 use cubeos_error::Error;
 
-// Dependencies for UART and I2C
-// use rust_i2c::{Command, Connection};
-// use rust_uart::{Connection, SerialStream};
+mod example;
+
+pub use crate::example::*;
 
 // Example Error type
 // covers all Errors possible within your API, Service and Payload
 #[derive(Debug, Fail, Clone, PartialEq)]
 pub enum ExampleError {
-    ///Example error
+    /// None
+    #[fail(display = "None")]
+    None,
+    /// Example error
     #[fail(display = "Example error")]
     Err,
+    /// Set Error
+    #[fail(display = "Set error, only accepts ZERO or ONE")]
+    SetErr,
+    /// I2C Error
+    #[fail(display = "I2C Error")]
+    I2CError(std::io::ErrorKind),
+    /// I2C Set Error
+    #[fail(display = "I2C Set Error")]
+    I2CSet,
+    /// UART Error
+    #[fail(display = "UART Error")]
+    UARTError(rust_uart::UartError),
 }
 // Implementation of Conversion of Example Error type 
 // to cubeos_error::Error (Error type that gets returned to GND)
@@ -35,18 +50,37 @@ pub enum ExampleError {
 impl From<ExampleError> for Error {
     fn from(e: ExampleError) -> cubeos_error::Error {
         match e {
-            ExampleError::Err => cubeos_error::Error::ServiceError(0),
+            ExampleError::None => cubeos_error::Error::ServiceError(0),
+            ExampleError::Err => cubeos_error::Error::ServiceError(1),
+            ExampleError::SetErr => cubeos_error::Error::ServiceError(2),
+            ExampleError::I2CError(io) => cubeos_error::Error::from(io),
+            ExampleError::I2CSet => cubeos_error::Error::ServiceError(3),
+            ExampleError::UARTError(io) => cubeos_error::Error::from(io),
         }
+    }
+}
+impl From<rust_uart::UartError> for ExampleError {
+    fn from(e: rust_uart::UartError) -> ExampleError {
+        ExampleError::UARTError(e)
     }
 }
 
 // Example of Result Type used in the API
 pub type ExampleResult<T> = Result<T,ExampleError>;
 
+// impl <T> From<ExampleResult<T>> for cubeos_error::Result<T> {
+//     fn from(r: ExampleResult<T>) -> cubeos_error::Result<T> {
+//         match r {
+//             Ok(x) => Ok(x),
+//             Err(e) => Err(Error::from(e)),
+//         }
+//     }
+// }
+
 // Example of an Enum
 // Enums can be used as Input (e.g. to choose a telemetry item) or 
 // Output (e.g to show the state of a device (e.g. ON,OFF,IDLE,etc.))
-#[derive(Serialize,Deserialize,GraphQLEnum)]
+#[derive(Serialize,Deserialize,GraphQLEnum,Copy,Clone)]
 pub enum ExampleEnum {
     Zero,
     One,
@@ -64,181 +98,10 @@ pub struct ExampleInput {
     pub in_str: String,
     pub in_bool: bool,
 }
+
 #[derive(Serialize,Deserialize,Debug)]
 pub struct ExampleOutput {
     pub out_no: Vec<u16>,
     pub out_str: String,
     pub out_bool: Vec<bool>,
-}
-
-// Example of Struct containing the functions to connect to the payload
-#[derive(Serialize,Deserialize)]
-pub struct ExampleStruct {
-    // Connection field describing the connection to I2C or UART
-    // connection: Connection,
-    // Buffer needed for UART connections
-    // buffer: RefCell<Vec<u8>>
-    ex_no0: u16,
-    ex_no1: u16,
-    ex_str: String,
-    ex_bool0: bool,
-    ex_bool1: bool,
-}
-impl ExampleStruct {
-    // basic function to initialise an instance of the ExampleStruct
-    pub fn new() -> Self {
-        Self{
-            ex_no0: 0u16,
-            ex_no1: 0u16,
-            ex_str: "".to_string(),
-            ex_bool0: false,
-            ex_bool1: false,
-        }
-    }
-
-    // examples of get and set functions that use the previously defined
-    // Enum and Structs as In-/Output
-    pub fn get(&self, g: ExampleEnum) -> ExampleResult<ExampleOutput> {
-        match g {
-            ExampleEnum::Zero => Ok(ExampleOutput{
-                out_no: vec![self.ex_no0],
-                out_str: self.ex_str.to_string(),
-                out_bool: vec![self.ex_bool0],
-            }),
-            ExampleEnum::One => Ok(ExampleOutput{
-                out_no: vec![self.ex_no1],
-                out_str: self.ex_str.to_string(),
-                out_bool: vec![self.ex_bool1],
-            }),
-            ExampleEnum::All => self.get_all()
-        }
-    }
-
-    fn get_all(&self) -> ExampleResult<ExampleOutput> {
-        Ok(ExampleOutput{
-            out_no: vec![self.ex_no0,self.ex_no1],
-            out_str: self.ex_str.to_string(),
-            out_bool: vec![self.ex_bool0,self.ex_bool1],
-        })
-    }
-
-    pub fn set(&mut self, s: ExampleInput, e: ExampleEnum) -> ExampleResult<()> {
-        match e {
-            ExampleEnum::Zero => {
-                self.ex_no0 = s.in_no;
-                self.ex_str = s.in_str;
-                self.ex_bool0 = s.in_bool;
-                Ok(())
-            },
-            ExampleEnum::One => {
-                self.ex_no1 = s.in_no;
-                self.ex_str = s.in_str;
-                self.ex_bool1 = s.in_bool;
-                Ok(())
-            }
-            _ => Err(ExampleError::Err),
-        }   
-    }
-
-    // I2C Example Transfer (Write-Read)
-    // This function serves as an example how to implement a write-read to payload via I2C
-    // This is the most common function used for commanding that gives direct feedback
-    // The examples for Write and Read are given below, but are 
-    //
-    // The I2C transfer function has the structure:
-    // transfer(&self, command: Command, rx_len: usize, delay: Duration)
-    // 
-    // pub fn i2c_transfer(&self, i: ExampleInput) -> ExampleResult<Output> {
-    //     let cmd: u8 = i.in_no as u8;
-    //     let rx_len = 10;
-    //     let delay = Duration::from_millis(50);
-
-    //     if cmd != 0 {
-    //         let data: Vec<u8> = Vec::new();
-    //         data.push(i.in_str.to_vec());
-    //         let command = Command{cmd, data};
-
-    //         match self.connection.transfer(command, rx_len, delay) {
-    //             Ok(x) => Ok(ExampleOutput{
-    //                     out_no: x as u8,
-    //                     out_str: "".to_string(),
-    //                     out_bool: true,
-    //                 }),
-    //             Err(_) => Err(ExampleError::Err),
-    //         }
-    //     }
-    // }
-
-    // I2C Example Write
-    // This function serves as an example how to write a payload via I2C
-    //
-    // The I2C write function has the structure:
-    // write(&self, command: Command)
-    // 
-    // pub fn i2c_write(&self, i: ExampleInput) -> ExampleResult<()> {
-    //     let cmd: u8 = i.in_no as u8;
-
-    //     if cmd != 0 {
-    //         let data: Vec<u8> = Vec::new();
-    //         data.push(i.in_str.to_vec());
-    //         let command = Command{cmd, data};
-
-    //         match self.connection.write(command) {
-    //             Ok(()) => Ok(()),
-    //             Err(_) => Err(ExampleError::Err),
-    //         }
-    //     }
-    // }
-    
-    // I2C Example Read
-    // This function serves as an example how to read from a payload via I2C
-    //
-    // The I2C read function has the structure:
-    // read(&self, command: Command, rx_len: usize)
-    // 
-    // pub fn i2c_read(&self, cmd: Command) -> ExampleResult<ExampleOutput> {       
-    //     let rx_len: usize = 10;
-    //     match self.connection.read(cmd.cmd, rx_len) {
-    //         Ok(x) => Ok(ExampleOutput{
-    //                 out_no: x as u8,
-    //                 out_str: "".to_string(),
-    //                 out_bool: true,
-    //             }),
-    //         Err(_) => Err(ExampleError::Err),
-    //     }                
-    // }
-
-    
-    // UART Examples
-    // This function serves as an example how to communicate with a payload via UART
-    // 
-    // The UART read function has the structure:
-    // read(&self, len: usize, timeout: Duration)
-    // 
-    // pub fn uart_read(&self) -> ExampleResult<ExampleOutput> {
-    //     let mut buffer = self.buffer.borrow_mut();
-    //     // Reads 1 byte, with a timeout of 1ms
-    //     while let Ok(mut buf) = self.connection.read(1, Duration::from_millis(1)) {
-    //         buffer.append(&mut buf);
-    //         if buffer.len() > 4096 {
-    //             break;
-    //         }
-    //     }
-    //     Ok(ExampleOutput{
-    //         out_no: buffer[0] as u16,
-    //         out_str: buffer[1..].to_string(),
-    //         out_bool: true,
-    //     })
-    // }
-    // 
-    // This function serves as an example how to write to a payload via UART
-    // 
-    // The UART write function has the structure:
-    // write(&self, data: &[u8])
-    // 
-    // pub fn uart_write(&self, data: &[u8]) -> ExampleResult<()> {
-    //     self.connection.write(data)
-    // }
-    // 
-    // 
 }
