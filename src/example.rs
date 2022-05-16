@@ -227,7 +227,7 @@ impl ExampleStruct {
     // write(&self, data: &[u8])
     // 
 
-    pub fn get_uart(&mut self) -> ExampleResult<u8> {
+    pub fn get_uart(&mut self) -> ExampleResult<Vec<u8>> {
         self.last_command = GetUart;
         let get = &[UART_GET];
 
@@ -236,15 +236,9 @@ impl ExampleStruct {
                 // sleep 10ms
                 thread::sleep(Duration::from_millis(10));
 
-                let mut buffer = self.buffer.borrow_mut();
+                // let mut buffer = self.buffer.borrow_mut();
                 // Reads 1 byte, with a timeout of 1ms
-                while let Ok(mut buf) = self.uart_connection.read(1, Duration::from_millis(1)) {
-                    buffer.append(&mut buf);
-                    if buffer.len() > 1 {
-                        break;
-                    }
-                }
-                Ok(buffer[0])
+                Ok(self.uart_connection.read(1, Duration::from_millis(1))?)
             }
             Err(e) => Err(ExampleError::UARTError(e)),
         }
