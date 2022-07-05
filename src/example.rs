@@ -3,6 +3,7 @@ use serde::*;
 // Dependencies for UART and I2C
 use rust_i2c::{Command, Connection as I2c};
 use rust_uart::{Connection as Uart};
+use rust_udp::{Connection as Udp};
 use std::cell::RefCell;
 use std::time::Duration;
 use std::thread;
@@ -41,13 +42,12 @@ pub struct ExampleStruct {
     // Buffer needed for UART connections
     buffer: RefCell<Vec<u8>>,
 
+    // UDP connection
+    udp_connection: Udp,
+
     // SPI connection 
     // for later use
     // spi_connection: Spi,
-
-    last_error: ExampleError,
-    last_command: InputEnum,
-    // last_input: InputEnum,
 
     // example-values
     ex_no0: u16,
@@ -64,15 +64,17 @@ impl ExampleStruct {
         uart_path: String,
         uart_setting: serial::PortSettings,
         uart_timeout: Duration,
+        // API's Listener Address
+        udp_path: String,
+        // Payload Address
+        udp_to: String,
     ) -> ExampleResult<Self> {
         Ok(Self{
             i2c_connection: I2c::from_path(&i2c_path,i2c_addr),
             uart_connection: Uart::from_path(&uart_path,uart_setting,uart_timeout)?,
             buffer: RefCell::new(Vec::new()),
+            udp_connection: Udp::from_path(&udp_path, &udp_to),
             // spi_connection: Spi::from_path(spi),
-
-            last_error: ExampleError::None,
-            last_command: InputEnum::None,
             
             ex_no0: 0u16,
             ex_no1: 0u16,
@@ -85,7 +87,6 @@ impl ExampleStruct {
     // examples of get and set functions that use the previously defined
     // Enum and Structs as In-/Output
     pub fn get_values(&mut self, g: ExampleEnum) -> ExampleResult<ExampleOutput> {
-        self.last_command = GetValues(g);
         match g {
             ExampleEnum::Zero => Ok(ExampleOutput{
                 out_no: vec![self.ex_no0],
@@ -141,8 +142,6 @@ impl ExampleStruct {
     // transfer(&self, command: Command, rx_len: usize, delay: Duration)
     // 
     pub fn get_i2c(&mut self) -> ExampleResult<Vec<u8>> {
-        self.last_command = GetI2c;
-
         let cmd: u8 = I2C_GET;
         let rx_len = 1;
         let delay = Duration::from_millis(50);
@@ -156,8 +155,6 @@ impl ExampleStruct {
         }
     }
     pub fn set_i2c(&mut self, i: u8) -> ExampleResult<()> {
-        self.last_command = SetI2c(i);
-
         let cmd: u8 = I2C_SET;
         let rx_len = 1;
         let delay = Duration::from_millis(50);
@@ -228,7 +225,6 @@ impl ExampleStruct {
     // 
 
     pub fn get_uart(&mut self) -> ExampleResult<Vec<u8>> {
-        self.last_command = GetUart;
         let get = &[UART_GET];
 
         match self.uart_connection.write(get) {
@@ -247,12 +243,25 @@ impl ExampleStruct {
     // This example explores the possibilty of the payload not returning anything
     // If the UART payload sends a reply to your set-command, implementation is similar to the get_uart command
     pub fn set_uart(&mut self, input: u8) -> ExampleResult<()> {
-        self.last_command = SetUart(input);
         let set = &[UART_SET, input];
 
         match self.uart_connection.write(set) {
             Ok(_) => Ok(()),
             Err(e) => Err(ExampleError::UARTError(e)),      
         }
+    }
+
+    // UDP Examples
+    pub fn get_udp(&self, command: Vec<u8>, rx_len: usize) -> ExampleResult<Vec<u8>> {
+        match self.udp_connection.transfer(command,rx_len) {
+            Ok(v) => Ok(v),
+            Err(e) => Err(ExampleError::UdpError(e)),
+        }
+    }
+
+    // This example explores the possibilty of the payload not returning anything
+    // It is however recommended to expect a reply from the payload and use the transfer function
+    pub fn set_udp(&self, command: Vec<u8>) -> ExampleResult<()> {
+        self.udp_connection.write(command)
     }
 }
