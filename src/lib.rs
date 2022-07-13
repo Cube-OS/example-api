@@ -1,6 +1,22 @@
-// This file serves as an example, how to write an API in the Cube-OS framework
+//
+// Copyright (C) 2022 CUAVA
+//
+// Licensed under the Apache License, Version 2.0 (the "License")
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 // 
-// At the bottom of the file you can find examples of how to read and write via I2C and UART
+// Contributed by: Patrick Oppel (patrick.oppel94@gmail.com)
+// 
+// This file is as an example, how to write an API in the Cube-OS framework
+// 
 
 // Dependencies
 use failure::{Fail};
@@ -11,6 +27,7 @@ use cubeos_error::Error;
 
 mod example;
 
+// Make everything in example.rs public
 pub use crate::example::*;
 
 // Example Error type
@@ -36,17 +53,17 @@ pub enum ExampleError {
     #[fail(display = "UART Error")]
     UARTError(rust_uart::UartError),
 }
-// Implementation of Conversion of Example Error type 
-// to cubeos_error::Error (Error type that gets returned to GND)
-// 
-// cubeos-error::Error implements conversion for the following standard errors:
-// failure::Error -> cubeos_error::Error::Failure(String)
-// std::io::Error -> cubeos_error::Error::Io(u8)
-// Infallible -> cubeos_error::Error::Infallible
-// bincode::Error -> cubeos_error::Error::Bincode(u8)
-// PoisonError<MutexGuard<'a,T>> -> cubeos_error::Error::PoisonError
-// 
-// Any Errors in ExampleError must be converted to cubeos_error::Error::ServiceError(u8)
+/// Implementation of Conversion of Example Error type 
+/// to cubeos_error::Error (Error type that gets returned to GND)
+/// 
+/// cubeos-error::Error implements conversion for the following standard errors:
+/// failure::Error -> cubeos_error::Error::Failure(String)
+/// std::io::Error -> cubeos_error::Error::Io(u8)
+/// Infallible -> cubeos_error::Error::Infallible
+/// bincode::Error -> cubeos_error::Error::Bincode(u8)
+/// PoisonError<MutexGuard<'a,T>> -> cubeos_error::Error::PoisonError
+/// 
+/// Any Errors in ExampleError must be converted to cubeos_error::Error::ServiceError(u8)
 impl From<ExampleError> for Error {
     fn from(e: ExampleError) -> cubeos_error::Error {
         match e {
@@ -67,15 +84,6 @@ impl From<rust_uart::UartError> for ExampleError {
 
 // Example of Result Type used in the API
 pub type ExampleResult<T> = Result<T,ExampleError>;
-
-// impl <T> From<ExampleResult<T>> for cubeos_error::Result<T> {
-//     fn from(r: ExampleResult<T>) -> cubeos_error::Result<T> {
-//         match r {
-//             Ok(x) => Ok(x),
-//             Err(e) => Err(Error::from(e)),
-//         }
-//     }
-// }
 
 // Example of an Enum
 // Enums can be used as Input (e.g. to choose a telemetry item) or 

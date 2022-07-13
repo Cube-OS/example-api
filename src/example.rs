@@ -1,3 +1,22 @@
+//
+// Copyright (C) 2022 CUAVA
+//
+// Licensed under the Apache License, Version 2.0 (the "License")
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// 
+// Contributed by: Patrick Oppel (patrick.oppel94@gmail.com)
+// 
+// Comments generated in parts with GPT-3 (see disclaimer in README)
+
 use serde::*;
 
 // Dependencies for UART and I2C
@@ -57,7 +76,22 @@ pub struct ExampleStruct {
     ex_bool1: bool,
 }
 impl ExampleStruct {
-    // basic function to initialise an instance of the ExampleStruct
+    /// Basic function to initialise an instance of the ExampleStruct
+    ///
+    /// # Arguments
+    ///
+    /// * `i2c_path` - A string that represents the path to the i2c connection
+    /// * `i2c_addr` - A u16 that represents the address of the i2c connection
+    /// * `uart_path` - A string that represents the path to the uart connection
+    /// * `uart_setting` - A serial::PortSettings that represents the settings of the uart connection
+    /// * `uart_timeout` - A Duration that represents the timeout of the uart connection
+    /// * `udp_path` - A string that represents the path to the udp connection
+    /// * `udp_to` - A string that represents the address of the udp connection
+    ///
+    /// # Output
+    ///
+    /// * `ExampleResult<Self>` - Returns `Self` or Error of type ExampleError
+    ///
     pub fn new(
         i2c_path: String,
         i2c_addr: u16,
@@ -86,6 +120,16 @@ impl ExampleStruct {
 
     // examples of get and set functions that use the previously defined
     // Enum and Structs as In-/Output
+
+    /// This function is used to get values from the struct.
+    ///
+    /// # Arguments
+    ///
+    /// * `g` - An enum that specifies which values to get.
+    ///
+    /// # Output
+    ///
+    /// * `ExampleOutput` - A struct containing the requested values.
     pub fn get_values(&mut self, g: ExampleEnum) -> ExampleResult<ExampleOutput> {
         match g {
             ExampleEnum::Zero => Ok(ExampleOutput{
@@ -110,6 +154,18 @@ impl ExampleStruct {
         })
     }
 
+    /// This function sets the values of the struct.
+    ///
+    /// # Arguments
+    ///
+    /// * `s` - An instance of ExampleInput
+    /// * `e` - An instance of ExampleEnum
+    ///
+    /// # Output
+    ///
+    /// * `()` - If successful
+    /// * `ExampleError::SetErr` - If unsuccessful
+    ///
     pub fn set_values(&mut self, s: ExampleInput, e: ExampleEnum) -> ExampleResult<()> {
         match e {
             ExampleEnum::Zero => {
@@ -133,14 +189,27 @@ impl ExampleStruct {
         }   
     }
 
-    // I2C Example Transfer (Write-Read)
-    // These functions serve as examples how to implement a write-read to payload via I2C
-    // This is the preferred function used for commanding I2C payloads
-    // Examples for Write and Read are given below for completeness
-    // 
-    // The I2C transfer function has the structure:
-    // transfer(&self, command: Command, rx_len: usize, delay: Duration)
-    // 
+    /// I2C Example Transfer (Write-Read)
+    /// The I2C transfer function is the preferred function used for commanding I2C payloads.
+    /// It has the structure: 
+    /// connection.transfer(&self, command: Command, rx_len: usize, delay: Duration)
+    /// 
+    /// Examples for Write and Read are given below for completeness
+
+    /// This function performs a write and read of payload data via I2C
+    ///
+    /// # Arguments
+    ///
+    /// * `self` - the struct that contains the i2c connection
+    ///
+    /// # Output
+    ///
+    /// * `ExampleResult<Vec<u8>>` - the result of the i2c transfer
+    ///
+    /// # Errors
+    ///
+    /// * `ExampleError::I2CError` - if the i2c transfer fails
+    ///
     pub fn get_i2c(&mut self) -> ExampleResult<Vec<u8>> {
         let cmd: u8 = I2C_GET;
         let rx_len = 1;
@@ -154,6 +223,21 @@ impl ExampleStruct {
             Err(e) => Err(ExampleError::I2CError(e.kind())),
         }
     }
+
+    /// This function performs a write with input data and read of payload data via I2C
+    ///
+    /// # Arguments
+    ///
+    /// * `i` - The data to be sent to the payload.
+    ///
+    /// # Output
+    ///
+    /// * `ExampleResult<()>` - The result of the operation.
+    ///
+    /// # Errors
+    ///
+    /// * `ExampleError::I2CError` - if the i2c transfer fails
+    ///
     pub fn set_i2c(&mut self, i: u8) -> ExampleResult<()> {
         let cmd: u8 = I2C_SET;
         let rx_len = 1;
@@ -214,16 +298,26 @@ impl ExampleStruct {
     // }
 
     
-    // UART Examples
-    // These functions serves as an example how to communicate with a payload via UART
-    // 
-    // The UART read function has the structure:
-    // read(&self, len: usize, timeout: Duration)
-    // 
-    // The UART write function has the structure:
-    // write(&self, data: &[u8])
-    // 
+    /// UART Examples
+    /// These functions serves as an example how to communicate with a payload via UART
+    /// 
+    /// The UART read function has the structure:
+    /// read(&self, len: usize, timeout: Duration)
+    /// 
+    /// The UART write function has the structure:
+    /// write(&self, data: &[u8])
+    /// 
 
+    /// Returns a vector of bytes from the UART connection.
+    ///
+    /// # Arguments
+    ///
+    /// * `self` - the `Example` struct
+    ///
+    /// # Output
+    ///
+    /// * `ExampleResult<Vec<u8>>` - a vector of bytes
+    /// 
     pub fn get_uart(&mut self) -> ExampleResult<Vec<u8>> {
         let get = &[UART_GET];
 
@@ -232,7 +326,6 @@ impl ExampleStruct {
                 // sleep 10ms
                 thread::sleep(Duration::from_millis(10));
 
-                // let mut buffer = self.buffer.borrow_mut();
                 // Reads 1 byte, with a timeout of 1ms
                 Ok(self.uart_connection.read(1, Duration::from_millis(1))?)
             }
@@ -240,8 +333,18 @@ impl ExampleStruct {
         }
     }
 
-    // This example explores the possibilty of the payload not returning anything
-    // If the UART payload sends a reply to your set-command, implementation is similar to the get_uart command
+    /// This example explores the possibilty of the payload not returning anything
+    /// If the UART payload sends a reply to your set-command, implementation is similar to the get_uart command
+    /// Writes data to the UART
+    ///
+    /// # Arguments
+    ///
+    /// * `input` - The input to set the UART to.
+    ///
+    /// # Output
+    ///
+    /// * `ExampleResult<()>` - The result of the operation.
+    /// 
     pub fn set_uart(&mut self, input: u8) -> ExampleResult<()> {
         let set = &[UART_SET, input];
 
@@ -251,7 +354,18 @@ impl ExampleStruct {
         }
     }
 
-    // UDP Examples
+    /// UDP Examples
+    /// This is an example for a simple get function via UDP
+    ///
+    /// # Arguments
+    ///
+    /// * `command` - A vector of bytes to send to the device
+    /// * `rx_len` - The number of bytes to receive from the device
+    ///
+    /// # Output
+    ///
+    /// * `ExampleResult<Vec<u8>>` - a vector of bytes
+    /// 
     pub fn get_udp(&self, command: Vec<u8>, rx_len: usize) -> ExampleResult<Vec<u8>> {
         match self.udp_connection.transfer(command,rx_len) {
             Ok(v) => Ok(v),
