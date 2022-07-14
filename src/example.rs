@@ -107,7 +107,7 @@ impl ExampleStruct {
             i2c_connection: I2c::from_path(&i2c_path,i2c_addr),
             uart_connection: Uart::from_path(&uart_path,uart_setting,uart_timeout)?,
             buffer: RefCell::new(Vec::new()),
-            udp_connection: Udp::from_path(&udp_path, &udp_to),
+            udp_connection: Udp::from_path(udp_path, udp_to),
             // spi_connection: Spi::from_path(spi),
             
             ex_no0: 0u16,
@@ -172,18 +172,15 @@ impl ExampleStruct {
                 self.ex_no0 = s.in_no;
                 self.ex_str = s.in_str.to_string();
                 self.ex_bool0 = s.in_bool;
-                self.last_command = SetValues(s,e);
                 Ok(())
             },
             ExampleEnum::One => {
                 self.ex_no1 = s.in_no;
                 self.ex_str = s.in_str.to_string();
                 self.ex_bool1 = s.in_bool;
-                self.last_command = SetValues(s,e);
                 Ok(())
             },
             _ => {
-                self.last_command = SetValues(s,e);
                 Err(ExampleError::SetErr)
             },
         }   
@@ -369,13 +366,16 @@ impl ExampleStruct {
     pub fn get_udp(&self, command: Vec<u8>, rx_len: usize) -> ExampleResult<Vec<u8>> {
         match self.udp_connection.transfer(command,rx_len) {
             Ok(v) => Ok(v),
-            Err(e) => Err(ExampleError::UdpError(e)),
+            Err(e) => Err(ExampleError::UdpError(e.kind())),
         }
     }
 
     // This example explores the possibilty of the payload not returning anything
     // It is however recommended to expect a reply from the payload and use the transfer function
     pub fn set_udp(&self, command: Vec<u8>) -> ExampleResult<()> {
-        self.udp_connection.write(command)
+        match self.udp_connection.write(command) {
+            Ok(()) => Ok(()),
+            Err(e) => Err(ExampleError::UdpError(e.kind())),
+        }
     }
 }

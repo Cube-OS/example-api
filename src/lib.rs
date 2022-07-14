@@ -52,6 +52,9 @@ pub enum ExampleError {
     /// UART Error
     #[fail(display = "UART Error")]
     UARTError(rust_uart::UartError),
+    /// UDP Error
+    #[fail(display = "UDP Error")]
+    UdpError(std::io::ErrorKind),
 }
 /// Implementation of Conversion of Example Error type 
 /// to cubeos_error::Error (Error type that gets returned to GND)
@@ -73,6 +76,7 @@ impl From<ExampleError> for Error {
             ExampleError::I2CError(io) => cubeos_error::Error::from(io),
             ExampleError::I2CSet => cubeos_error::Error::ServiceError(3),
             ExampleError::UARTError(io) => cubeos_error::Error::from(io),
+            ExampleError::UdpError(io) => cubeos_error::Error::from(io),
         }
     }
 }
