@@ -105,7 +105,7 @@ impl ExampleStruct {
     ) -> ExampleResult<Self> {
         Ok(Self{
             i2c_connection: I2c::from_path(&i2c_path,i2c_addr),
-            uart_connection: Uart::from_path(&uart_path,uart_setting,uart_timeout)?,
+            uart_connection: Uart::from_path(&uart_path,uart_setting,uart_timeout),
             buffer: RefCell::new(Vec::new()),
             udp_connection: Udp::from_path(udp_path, udp_to),
             // spi_connection: Spi::from_path(spi),
