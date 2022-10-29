@@ -26,11 +26,11 @@ use rust_udp::{Connection as Udp};
 use std::cell::RefCell;
 use std::time::Duration;
 use std::thread;
-use serial::*;
+// use serial::*;
 // use rust_spi::{Connection as Spi};
 
 use super::*;
-use crate::InputEnum::*;
+// use crate::InputEnum::*;
 
 const I2C_GET: u8 = 0x01;
 const I2C_SET: u8 = 0x10;
@@ -363,8 +363,8 @@ impl ExampleStruct {
     ///
     /// * `ExampleResult<Vec<u8>>` - a vector of bytes
     /// 
-    pub fn get_udp(&self, command: Vec<u8>, rx_len: usize) -> ExampleResult<Vec<u8>> {
-        match self.udp_connection.transfer(command,rx_len) {
+    pub fn get_udp(&self, command: Vec<u8>) -> ExampleResult<Vec<u8>> {
+        match self.udp_connection.transfer(command) {
             Ok(v) => Ok(v),
             Err(e) => Err(ExampleError::UdpError(e.kind())),
         }
