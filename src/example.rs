@@ -364,7 +364,7 @@ impl ExampleStruct {
     /// * `ExampleResult<Vec<u8>>` - a vector of bytes
     /// 
     pub fn get_udp(&self, command: Vec<u8>, rx_len: usize) -> ExampleResult<Vec<u8>> {
-        match self.udp_connection.transfer(command,rx_len) {
+        match self.udp_connection.transfer(command) {
             Ok(v) => Ok(v),
             Err(e) => Err(ExampleError::UdpError(e.kind())),
         }
