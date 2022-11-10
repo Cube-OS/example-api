@@ -19,11 +19,14 @@
 // 
 
 // Dependencies
+extern crate ground;
+
 use failure::{Fail};
 use serde::*;
-use juniper::*;
+use juniper::GraphQLEnum;
 use std::convert::From;
 use cubeos_error::Error;
+use ground::*;
 
 mod example;
 
@@ -92,7 +95,7 @@ pub type ExampleResult<T> = Result<T,ExampleError>;
 // Example of an Enum
 // Enums can be used as Input (e.g. to choose a telemetry item) or 
 // Output (e.g to show the state of a device (e.g. ON,OFF,IDLE,etc.))
-#[derive(Serialize,Deserialize,GraphQLEnum,Copy,Clone)]
+#[derive(Serialize,Deserialize,GraphQLEnum,Copy,Clone,Ground)]
 pub enum ExampleEnum {
     Zero,
     One,
@@ -111,7 +114,7 @@ pub struct ExampleInput {
     pub in_bool: bool,
 }
 
-#[derive(Serialize,Deserialize,Debug)]
+#[derive(Serialize,Deserialize,Debug,Ground)]
 pub struct ExampleOutput {
     pub out_no: Vec<u16>,
     pub out_str: String,
