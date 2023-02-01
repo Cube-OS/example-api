@@ -19,14 +19,19 @@
 // 
 
 // Dependencies
-extern crate ground;
+// #[cfg(feature = "ground")]
+// extern crate ground;
 
 use failure::{Fail};
 use serde::*;
-use juniper::GraphQLEnum;
 use std::convert::From;
 use cubeos_error::Error;
-use ground::*;
+// #[cfg(feature = "ground")]
+// use ground::*;
+#[cfg(feature = "ground")]
+use ground::Ground;
+use strum_macros::{EnumString,Display,EnumIter};
+use strum::IntoEnumIterator;
 
 mod example;
 
@@ -95,7 +100,8 @@ pub type ExampleResult<T> = Result<T,ExampleError>;
 // Example of an Enum
 // Enums can be used as Input (e.g. to choose a telemetry item) or 
 // Output (e.g to show the state of a device (e.g. ON,OFF,IDLE,etc.))
-#[derive(Serialize,Deserialize,GraphQLEnum,Copy,Clone,Ground)]
+#[derive(Serialize,Deserialize,Copy,Clone,EnumIter,Display)]
+// #[cfg_attr(feature = "ground", derive(Ground))]
 pub enum ExampleEnum {
     Zero,
     One,
@@ -105,7 +111,8 @@ pub enum ExampleEnum {
 // Example of an Input/Output Struct
 // It is necessary to also define a GraphQL equivalent for input structs
 // (see example-service/graphql.rs)
-#[derive(Serialize,Deserialize)]
+#[derive(Serialize,Deserialize,Clone)]
+// #[cfg_attr(feature = "ground", derive(Ground))]
 pub struct ExampleInput {
     pub in_no: u16,
     pub in_no1: u32,
@@ -114,9 +121,18 @@ pub struct ExampleInput {
     pub in_bool: bool,
 }
 
-#[derive(Serialize,Deserialize,Debug,Ground)]
+#[derive(Serialize, Deserialize)]
+// #[cfg_attr(feature = "ground", derive(Ground))]
 pub struct ExampleOutput {
     pub out_no: Vec<u16>,
     pub out_str: String,
     pub out_bool: Vec<bool>,
 }
+// impl From<Vec<u8>> for ExampleOutput {
+//     fn from(v: Vec<u8>) -> ExampleOutput {
+//         ExampleOutput{
+//             in_no: <u16>::from_be_bytes(&[v[0..2]]),
+//             in_struct: Strukt(from(v[2..10].to_vec()))
+//         }
+//     }
+// }
