@@ -26,29 +26,14 @@ use rust_udp::{Connection as Udp};
 use std::cell::RefCell;
 use std::time::Duration;
 use std::thread;
-// use serial::*;
-// use rust_spi::{Connection as Spi};
-
+// #[cfg(feature = "ground")]
+// use ground::*;
 use super::*;
-// use crate::InputEnum::*;
 
 const I2C_GET: u8 = 0x01;
 const I2C_SET: u8 = 0x10;
 const UART_GET: u8 = 0x02;
 const UART_SET: u8 = 0x20;
-
-#[derive(Serialize,Deserialize)]
-pub enum InputEnum{
-    None,
-    GetValues(ExampleEnum),
-    SetValues(ExampleInput,ExampleEnum),
-    GetI2c,
-    SetI2c(u8),
-    GetUart,
-    SetUart(u8),
-    // GetSpi(),
-    // SetSpi(),
-}
 
 // Example of Struct containing the functions to connect to the payload
 // #[derive(Serialize,Deserialize)]
