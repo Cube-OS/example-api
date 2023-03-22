@@ -23,13 +23,10 @@
 // extern crate ground;
 
 use failure::{Fail};
-use serde::*;
+use cubeos_service::*;
+use serde::{Serialize,Deserialize};
 use std::convert::From;
-use cubeos_error::Error;
-// #[cfg(feature = "ground")]
-// use ground::*;
-#[cfg(feature = "ground")]
-use ground::Ground;
+use cubeos_service::{Error,Result};
 use strum_macros::{EnumString,Display,EnumIter};
 use strum::IntoEnumIterator;
 
@@ -65,26 +62,37 @@ pub enum ExampleError {
     UdpError(std::io::ErrorKind),
 }
 /// Implementation of Conversion of Example Error type 
-/// to cubeos_error::Error (Error type that gets returned to GND)
+/// to cubeos_service::Error (Error type that gets returned to GND)
 /// 
 /// cubeos-error::Error implements conversion for the following standard errors:
-/// failure::Error -> cubeos_error::Error::Failure(String)
-/// std::io::Error -> cubeos_error::Error::Io(u8)
-/// Infallible -> cubeos_error::Error::Infallible
-/// bincode::Error -> cubeos_error::Error::Bincode(u8)
-/// PoisonError<MutexGuard<'a,T>> -> cubeos_error::Error::PoisonError
+/// failure::Error -> cubeos_service::Error::Failure(String)
+/// std::io::Error -> cubeos_service::Error::Io(u8)
+/// Infallible -> cubeos_service::Error::Infallible
+/// bincode::Error -> cubeos_service::Error::Bincode(u8)
+/// PoisonError<MutexGuard<'a,T>> -> cubeos_service::Error::PoisonError
 /// 
-/// Any Errors in ExampleError must be converted to cubeos_error::Error::ServiceError(u8)
+/// Any Errors in ExampleError must be converted to cubeos_service::Error::ServiceError(u8)
 impl From<ExampleError> for Error {
-    fn from(e: ExampleError) -> cubeos_error::Error {
+    fn from(e: ExampleError) -> Error {
         match e {
-            ExampleError::None => cubeos_error::Error::ServiceError(0),
-            ExampleError::Err => cubeos_error::Error::ServiceError(1),
-            ExampleError::SetErr => cubeos_error::Error::ServiceError(2),
-            ExampleError::I2CError(io) => cubeos_error::Error::from(io),
-            ExampleError::I2CSet => cubeos_error::Error::ServiceError(3),
-            ExampleError::UARTError(io) => cubeos_error::Error::from(io),
-            ExampleError::UdpError(io) => cubeos_error::Error::from(io),
+            ExampleError::None => Error::ServiceError(0),
+            ExampleError::Err => Error::ServiceError(1),
+            ExampleError::SetErr => Error::ServiceError(2),
+            ExampleError::I2CError(io) => Error::from(io),
+            ExampleError::I2CSet => Error::ServiceError(3),
+            ExampleError::UARTError(io) => Error::from(io),
+            ExampleError::UdpError(io) => Error::from(io),
+        }
+    }
+}
+impl From<Error> for ExampleError {
+    fn from(err: Error) -> ExampleError {
+        match err {
+            Error::ServiceError(0) => ExampleError::None,
+            Error::ServiceError(1) => ExampleError::Err,
+            Error::ServiceError(2) => ExampleError::SetErr,
+            Error::ServiceError(3) => ExampleError::I2CSet,
+            _ => ExampleError::Err, // or return a default error variant
         }
     }
 }
@@ -95,7 +103,7 @@ impl From<rust_uart::UartError> for ExampleError {
 }
 
 // Example of Result Type used in the API
-pub type ExampleResult<T> = Result<T,ExampleError>;
+pub type ExampleResult<T> = core::result::Result<T,ExampleError>;
 
 // Example of an Enum
 // Enums can be used as Input (e.g. to choose a telemetry item) or 
