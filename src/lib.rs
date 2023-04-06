@@ -29,6 +29,7 @@ use std::convert::From;
 use cubeos_service::{Error,Result};
 use strum_macros::{EnumString,Display,EnumIter};
 use strum::IntoEnumIterator;
+use logerror::LogError;
 
 mod example;
 
@@ -37,7 +38,7 @@ pub use crate::example::*;
 
 // Example Error type
 // covers all Errors possible within your API, Service and Payload
-#[derive(Debug, Fail, Clone, PartialEq)]
+#[derive(Debug, Fail, Clone, PartialEq, LogError)]
 pub enum ExampleError {
     /// None
     #[fail(display = "None")]
@@ -74,6 +75,7 @@ pub enum ExampleError {
 /// Any Errors in ExampleError must be converted to cubeos_service::Error::ServiceError(u8)
 impl From<ExampleError> for Error {
     fn from(e: ExampleError) -> Error {
+        log::error!("ExampleError: {:?}",e);
         match e {
             ExampleError::None => Error::ServiceError(0),
             ExampleError::Err => Error::ServiceError(1),
@@ -108,7 +110,7 @@ pub type ExampleResult<T> = core::result::Result<T,ExampleError>;
 // Example of an Enum
 // Enums can be used as Input (e.g. to choose a telemetry item) or 
 // Output (e.g to show the state of a device (e.g. ON,OFF,IDLE,etc.))
-#[derive(Serialize,Deserialize,Copy,Clone,EnumIter,Display)]
+#[derive(Debug,Serialize,Deserialize,Copy,Clone,EnumIter,Display)]
 // #[cfg_attr(feature = "ground", derive(Ground))]
 pub enum ExampleEnum {
     Zero,
@@ -119,7 +121,7 @@ pub enum ExampleEnum {
 // Example of an Input/Output Struct
 // It is necessary to also define a GraphQL equivalent for input structs
 // (see example-service/graphql.rs)
-#[derive(Serialize,Deserialize,Clone)]
+#[derive(Debug,Serialize,Deserialize,Clone)]
 // #[cfg_attr(feature = "ground", derive(Ground))]
 pub struct ExampleInput {
     pub in_no: u16,
@@ -129,7 +131,7 @@ pub struct ExampleInput {
     pub in_bool: bool,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug,Serialize, Deserialize)]
 // #[cfg_attr(feature = "ground", derive(Ground))]
 pub struct ExampleOutput {
     pub out_no: Vec<u16>,
