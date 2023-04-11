@@ -29,7 +29,6 @@ use std::convert::From;
 use cubeos_service::{Error,Result};
 use strum_macros::{EnumString,Display,EnumIter};
 use strum::IntoEnumIterator;
-use logerror::LogError;
 
 mod example;
 
@@ -38,7 +37,7 @@ pub use crate::example::*;
 
 // Example Error type
 // covers all Errors possible within your API, Service and Payload
-#[derive(Debug, Fail, Clone, PartialEq, LogError)]
+#[derive(Debug, Fail, Clone, PartialEq)]
 pub enum ExampleError {
     /// None
     #[fail(display = "None")]

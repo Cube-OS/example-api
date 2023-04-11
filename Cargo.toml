@@ -9,6 +9,7 @@ edition = "2018"
 serde = "1.0"
 failure = "0.1.8"
 serial = "0.4.0"
+log = "0.4"
 cubeos-service = { git = "ssh://git@github.com/Cube-OS/cubeos-service.git", feature = ["api"]}
 rust-uart = { git = "ssh://git@github.com/Cube-OS/rust-uart.git" }
 rust-i2c = { git = "ssh://git@github.com/Cube-OS/rust-i2c.git" }
