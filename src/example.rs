@@ -20,9 +20,9 @@
 use serde::*;
 
 // Dependencies for UART and I2C
-use rust_i2c::{Command, Connection as I2c};
-use rust_uart::{Connection as Uart};
-use rust_udp::{Connection as Udp};
+use i2c_rs::{Command, Connection as I2c};
+use uart_rs::{Connection as Uart};
+use udp_rs::{Connection as Udp};
 use std::cell::RefCell;
 use std::time::Duration;
 use std::thread;
