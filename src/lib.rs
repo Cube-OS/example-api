@@ -56,7 +56,7 @@ pub enum ExampleError {
     I2CSet,
     /// UART Error
     #[fail(display = "UART Error")]
-    UARTError(rust_uart::UartError),
+    UARTError(uart_rs::UartError),
     /// UDP Error
     #[fail(display = "UDP Error")]
     UdpError(std::io::ErrorKind),
@@ -97,8 +97,8 @@ impl From<Error> for ExampleError {
         }
     }
 }
-impl From<rust_uart::UartError> for ExampleError {
-    fn from(e: rust_uart::UartError) -> ExampleError {
+impl From<uart_rs::UartError> for ExampleError {
+    fn from(e: uart_rs::UartError) -> ExampleError {
         ExampleError::UARTError(e)
     }
 }
@@ -109,12 +109,26 @@ pub type ExampleResult<T> = core::result::Result<T,ExampleError>;
 // Example of an Enum
 // Enums can be used as Input (e.g. to choose a telemetry item) or 
 // Output (e.g to show the state of a device (e.g. ON,OFF,IDLE,etc.))
-#[derive(Debug,Serialize,Deserialize,Copy,Clone,EnumIter,Display)]
+#[derive(Debug,Default,Serialize,Deserialize,Copy,Clone,EnumIter,Display)]
 // #[cfg_attr(feature = "ground", derive(Ground))]
 pub enum ExampleEnum {
+    #[default]
     Zero,
     One,
     All,
+}
+
+#[derive(Debug,Default,Serialize,Deserialize,Clone)]
+pub struct TestStruct2 {
+    t1: u64,
+    te: ExampleEnum,
+}
+
+#[derive(Debug,Default,Serialize,Deserialize,Clone)]
+pub struct TestStruct {
+    in1: i16,
+    in2: f64,
+    struc: TestStruct2,
 }
 
 // Example of an Input/Output Struct
@@ -128,6 +142,7 @@ pub struct ExampleInput {
     pub in_no2: u16,
     pub in_str: String,
     pub in_bool: bool,
+    pub in_struct: TestStruct,
 }
 
 #[derive(Debug,Serialize, Deserialize)]
