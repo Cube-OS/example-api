@@ -10,7 +10,8 @@ serde = "1.0"
 failure = "0.1.8"
 serial = "0.4.0"
 log = "0.4"
-cubeos-service = { git = "ssh://git@github.com/Cube-OS/cubeos-service.git", feature = ["api"]}
+# cubeos-service = { git = "ssh://git@github.com/Cube-OS/cubeos-service.git", feature = ["api"]}
+cubeos-service = { path = "../cubeos-service", feature = ["api"]}
 uart-rs = { git = "ssh://git@github.com/Cube-OS/uart-rs.git" }
 i2c-rs = { git = "ssh://git@github.com/Cube-OS/i2c-rs.git" }
 spi-rs = { git = "ssh://git@github.com/Cube-OS/spi-rs.git" }
